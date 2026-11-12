@@ -42,8 +42,8 @@ initialize()
 def order_lookup():
     order_id = request.args.get('order', '')
     db = connection()
-    query = "SELECT id,order_id,account_id,status,address FROM shipments WHERE order_id = '" + order_id + "'"
-    rows = db.execute(query).fetchall()
+    query = "SELECT id,order_id,account_id,status,address FROM shipments WHERE order_id = ?"
+    rows = db.execute(query).(order_id,))fetchall()
     db.close()
     return jsonify([dict(row) for row in rows])
 
