@@ -115,14 +115,37 @@ router.get('/merchant/branding/:name',(req,res)=>{
   fs.readFile(path.join(merchantFiles,name),(err,data)=>err?res.sendStatus(404):res.type('image/svg+xml').send(data));
 });
 
-router.post('/merchant/import/catalog',requireRole('seller'),express.json({limit:'64kb'}),(req,res)=>{
-  const filename=String(req.body.filename||'catalog.csv');
-  const suffix=filename.split('.').pop().toLowerCase();
-  if(!['csv','txt'].includes(suffix))return res.sendStatus(400);
-  const destination=path.join(merchantFiles,filename);
-  fs.writeFileSync(destination,String(req.body.content||''));
-  res.json({stored:true});
+
+router.post('/merchant/import/catalog', requireRole('seller'), express.json({limit:'64kb'}), (req,res) => {
+    const filename = String(req.body.filename || 'catalog.csv');
+    const suffix = filename.split('.').pop().toLowerCase();
+
+    if (!['csv','txt'].includes(suffix))
+        return res.sendStatus(400);
+
+    // Reject filenames containing folder paths
+    if (filename !== path.basename(filename) ||
+        filename !== path.win32.basename(filename) ||
+        filename === '.' || filename === '..') {
+        return res.sendStatus(400);
+    }
+
+    // Check that the file stays in the allowed folder
+    const basePath = path.resolve(merchantFiles);
+    const destination = path.resolve(basePath, filename);
+
+    if (!destination.startsWith(basePath + path.sep))
+        return res.sendStatus(400);
+
+    // Save the file without overwriting existing files
+    try {
+        fs.writeFileSync(destination, String(req.body.content || ''), {flag:'wx'});
+        res.json({stored:true});
+    } catch (err) {
+        res.sendStatus(err.code === 'EEXIST' ? 409 : 500);
+    }
 });
+
 
 router.get('/merchant/account-card',requireRole('seller'),(req,res)=>{
   const label=String(req.query.label||'Storefront');
