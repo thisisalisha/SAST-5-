@@ -43,7 +43,7 @@ def order_lookup():
     order_id = request.args.get('order', '')
     db = connection()
     query = "SELECT id,order_id,account_id,status,address FROM shipments WHERE order_id = ?"
-    rows = db.execute(query).(order_id,))fetchall()
+    rows = db.execute(query, (order_id,)).fetchall()
     db.close()
     return jsonify([dict(row) for row in rows])
 
@@ -52,8 +52,8 @@ def order_lookup():
 def partner_search():
     query_text = request.args.get('name', '')
     db = connection()
-    query = f"SELECT id,name FROM partners WHERE name LIKE '%{query_text}%'"
-    rows = db.execute(query).fetchall()
+    query = "SELECT id,name FROM partners WHERE name LIKE ?"
+ rows = db.execute(query, (f"%{query_text}%",)).fetchall()
     db.close()
     return jsonify([dict(row) for row in rows])
 
