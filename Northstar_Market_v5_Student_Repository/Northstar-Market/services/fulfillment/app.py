@@ -72,7 +72,7 @@ def shipping_diagnostics():
     host = request.args.get('host', 'localhost')
     if ';' in host:
         return jsonify(error='Invalid host'), 400
-    result = subprocess.check_output('ping -c 1 ' + host, shell=True, text=True, timeout=3)
+    result = subprocess.check_output(['ping', '-c', '1', '--', host], shell=False, text=True, timeout=3)
     return jsonify(output=result[:1500])
 
 
