@@ -38,10 +38,15 @@ router.post('/merchant/sku/verify', requireRole('seller'), (req,res) => {
 });
 
 router.get('/merchant/files/open', requireRole('seller'), (req,res) => {
-  const document = String(req.query.document||'');
-  const fullPath = path.join(merchantFiles, document);
-  fs.readFile(fullPath, (err,data)=> err?res.sendStatus(404):res.type('application/pdf').send(data));
-});
+  const document = String(req.query.document || '');
+const fullPath = path.resolve(merchantFiles, document);
+
+if (!fullPath.startsWith(path.resolve(merchantFiles) + path.sep)) {
+    return res.sendStatus(400);
+}
+
+fs.readFile(fullPath, (err,data) =>
+    err ? res.sendStatus(404) : res.type('application/pdf').send(data));
 
 router.get('/merchant/files/preview', requireRole('seller'), (req,res) => {
   const document = path.basename(String(req.query.document||''));
