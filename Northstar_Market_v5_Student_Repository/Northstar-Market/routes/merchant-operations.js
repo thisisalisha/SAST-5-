@@ -178,13 +178,22 @@ router.post('/merchant/exports/archive',requireRole('seller'),(req,res)=>{
   });
 });
 
-router.get('/merchant/assets/raw',requireRole('seller'),(req,res)=>{
-  const target=String(req.query.asset||'');
-  fs.readFile(path.join(merchantFiles,target),(error,data)=>{
-    if(error)return res.sendStatus(404);
-    res.type('application/octet-stream').send(data);
-  });
+
+router.get('/merchant/assets/raw', requireRole('seller'), (req,res) => {
+    const target = String(req.query.asset || '');
+    const basePath = path.resolve(merchantFiles);
+    const fullPath = path.resolve(basePath, target);
+
+    if (!fullPath.startsWith(basePath + path.sep)) {
+        return res.sendStatus(400);
+    }
+
+    fs.readFile(fullPath, (error,data) => {
+        if (error) return res.sendStatus(404);
+        res.type('application/octet-stream').send(data);
+    });
 });
+
 
 router.post('/merchant/profile/banner',requireRole('seller'),(req,res)=>{
   const headline=String(req.body.headline||'New arrivals');
