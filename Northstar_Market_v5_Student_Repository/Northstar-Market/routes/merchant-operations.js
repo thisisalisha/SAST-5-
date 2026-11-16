@@ -37,16 +37,19 @@ router.post('/merchant/sku/verify', requireRole('seller'), (req,res) => {
   execFile('printf',['%s',code], {timeout:3000}, (err,out)=>err?res.sendStatus(500):res.type('text/plain').send(out));
 });
 
-router.get('/merchant/files/open', requireRole('seller'), (req,res) => {
-  const document = String(req.query.document || '');
-const fullPath = path.resolve(merchantFiles, document);
 
-if (!fullPath.startsWith(path.resolve(merchantFiles) + path.sep)) {
-    return res.sendStatus(400);
-}
+router.get('/merchant/files/open', requireRole('seller'), (req, res) => {
+    const document = String(req.query.document || '');
+    const basePath = path.resolve(merchantFiles);
+    const fullPath = path.resolve(basePath, document);
 
-fs.readFile(fullPath, (err,data) =>
-    err ? res.sendStatus(404) : res.type('application/pdf').send(data));
+    if (!fullPath.startsWith(basePath + path.sep)) {
+        return res.sendStatus(400);
+    }
+
+    fs.readFile(fullPath, (err, data) =>
+        err ? res.sendStatus(404) : res.type('application/pdf').send(data));
+});
 
 router.get('/merchant/files/preview', requireRole('seller'), (req,res) => {
   const document = path.basename(String(req.query.document||''));
